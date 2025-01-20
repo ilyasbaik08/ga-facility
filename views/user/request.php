@@ -111,20 +111,38 @@ $request = $requestController->getRequestsByUser($user['id']);
                         </select>
                     </div>
                     <div>
-                        <label for="name" class="block text-sm font-medium text-black">Nama Item:</label>
-                        <input type="text" name="nama_item" id="nama_item" required class="w-full px-4 py-2 mt-1 text-sm text-black bg-green-50 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <div>
-                        <label for="jumlah" class="block text-sm font-medium text-black">Jumlah:</label>
-                        <input type="number" name="jumlah" id="jumlah" required class="w-full px-4 py-2 mt-1 text-sm text-black bg-green-50 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-black">Satuan:</label>
-                        <input type="text" name="satuan" id="satuan" required class="w-full px-4 py-2 mt-1 text-sm text-black bg-green-50 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-black">Keterangan:</label>
-                        <input type="text" name="keterangan" id="keterangan" required class="w-full px-4 py-2 mt-1 text-sm text-black bg-green-50 border border-green-300 rounded-md focus:ring-green-500 focus:border-green-500">
+                        <label class="block text-sm font-medium text-black mb-2">Detail Items:</label>
+                        <table id="item-table" class="w-full text-sm text-black border border-green-300">
+                            <thead>
+                                <tr class="bg-green-50">
+                                    <th class="border border-green-300 px-2 py-1">Nama Item</th>
+                                    <th class="border border-green-300 px-2 py-1">Jumlah</th>
+                                    <th class="border border-green-300 px-2 py-1">Satuan</th>
+                                    <th class="border border-green-300 px-2 py-1">Keterangan</th>
+                                    <th class="border border-green-300 px-2 py-1">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-green-300 px-2 py-1">
+                                        <input type="text" name="nama_items[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+                                    </td>
+                                    <td class="border border-green-300 px-2 py-1">
+                                        <input type="number" name="jumlah[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+                                    </td>
+                                    <td class="border border-green-300 px-2 py-1">
+                                        <input type="text" name="satuan[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+                                    </td>
+                                    <td class="border border-green-300 px-2 py-1">
+                                        <input type="text" name="keterangan[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+                                    </td>
+                                    <td class="border border-green-300 px-2 py-1 text-center">
+                                        <button type="button" class="remove-row text-red-500">Hapus</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" id="add-row" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md">Tambah Baris</button>
                     </div>
 
                     <button type="submit" class="w-full px-6 py-3 text-lg font-semibold bg-green-500 text-white rounded-md mt-6">Submit</button>
@@ -140,6 +158,37 @@ $request = $requestController->getRequestsByUser($user['id']);
         const toggleButton = document.getElementById('menu-button');
         const sideNav = document.getElementById('sidenav');
         const closeMenu = document.getElementById("close-button");
+        const table = document.getElementById('item-table').getElementsByTagName('tbody')[0];
+        const addRowButton = document.getElementById('add-row');
+
+        addRowButton.addEventListener('click', () => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+            <td class="border border-green-300 px-2 py-1">
+                <input type="text" name="nama_item[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+            </td>
+            <td class="border border-green-300 px-2 py-1">
+                <input type="number" name="jumlah[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+            </td>
+            <td class="border border-green-300 px-2 py-1">
+                <input type="text" name="satuan[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+            </td>
+            <td class="border border-green-300 px-2 py-1">
+                <input type="text" name="keterangan[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+            </td>
+            <td class="border border-green-300 px-2 py-1 text-center">
+                <button type="button" class="remove-row text-red-500">Hapus</button>
+            </td>
+        `;
+            table.appendChild(newRow);
+        });
+
+        table.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('remove-row')) {
+                const row = e.target.closest('tr');
+                table.removeChild(row);
+            }
+        });
 
         toggleButton.addEventListener('click', () => {
             sideNav.classList.toggle('visible');
