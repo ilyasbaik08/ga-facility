@@ -21,6 +21,7 @@ class RequestController
     public function createRequest()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = $_POST['user_id'];
             $date = $_POST['date'];
             $nama_peminta = $_POST['name'];
             $ext_phone = $_POST['ext_phone'];
@@ -34,11 +35,11 @@ class RequestController
             $status_barang = "on progress";
             $status = "Not Approve";
 
-            if ($this->requestModel->createRequest($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status)) {
+            if ($this->requestModel->createRequest($user_id, $date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status)) {
                 $_SESSION['message'] = ['type' => 'success', 'text' => 'Request berhasil disimpan'];
 
                 // Kirim email setelah berhasil menyimpan data
-                $this->sendEmailNotification($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status);
+                $this->sendEmailNotification($user_id, $date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status);
             } else {
                 $_SESSION['message'] = ['type' => 'error', 'text' => 'Gagal menyimpan request'];
             }
@@ -61,7 +62,7 @@ class RequestController
     }
 
     // Fungsi untuk mengirim email
-    private function sendEmailNotification($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_item, $jumlah, $satuan, $keterangan, $status_barang, $status)
+    private function sendEmailNotification($user_id, $date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_item, $jumlah, $satuan, $keterangan, $status_barang, $status)
     {
         // Pesan email
         $to = 'ilyasanaknaik27@gmail.com';  // Ganti dengan email tujuan
