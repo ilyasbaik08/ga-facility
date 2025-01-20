@@ -13,7 +13,7 @@ class RequestModel
     }
 
     // Fungsi untuk menyimpan data ke tabel peminta
-    public function createRequest($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status)
+    public function createRequest($user_id, $date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status)
     {
         $sql = "INSERT INTO peminta (user_id, date, nama_peminta, ext_phone, request_date, request_time, facility, nama_item, jumlah, satuan, keterangan, status_barang, status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -53,11 +53,11 @@ class RequestModel
         $stmt->execute();
         $result = $stmt->get_result();
 
-        $requests = [];
+        $peminta = [];
         while ($row = $result->fetch_assoc()) {
-            $requests[] = $row;
+            $peminta[] = $row;
         }
 
-        return $requests;
+        return $peminta;
     }
 }
