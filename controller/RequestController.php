@@ -27,18 +27,18 @@ class RequestController
             $request_date = $_POST['request_date'];
             $request_time = $_POST['request_time'];
             $facility = $_POST['facility'];
-            $nama_item = $_POST['nama_item'];
-            $jumlah = $_POST['jumlah'];
-            $satuan = $_POST['satuan'];
-            $keterangan = $_POST['keterangan'];
+            $nama_items = $_POST['nama_items']; // Array
+            $jumlahs = $_POST['jumlah']; // Array
+            $satuans = $_POST['satuan']; // Array
+            $keterangans = $_POST['keterangan']; // Array
             $status_barang = "on progress";
             $status = "Not Approve";
 
-            if ($this->requestModel->createRequest($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_item, $jumlah, $satuan, $keterangan, $status_barang, $status)) {
+            if ($this->requestModel->createRequest($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status)) {
                 $_SESSION['message'] = ['type' => 'success', 'text' => 'Request berhasil disimpan'];
 
                 // Kirim email setelah berhasil menyimpan data
-                $this->sendEmailNotification($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_item, $jumlah, $satuan, $keterangan, $status_barang, $status);
+                $this->sendEmailNotification($date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status);
             } else {
                 $_SESSION['message'] = ['type' => 'error', 'text' => 'Gagal menyimpan request'];
             }
