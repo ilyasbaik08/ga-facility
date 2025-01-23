@@ -1,0 +1,181 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header("Location: ../../index.php");
+    exit();
+}
+
+$user = $_SESSION['user'];
+
+require_once __DIR__ . '/../../controller/PesananController.php';
+
+$pesananController = new PesananController();
+$pesanan = $pesananController->getPesananByUser($user['id']);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <title>Pesanan</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white py-4 px-6 flex justify-between items-center border-b border-gray-700">
+        <a href="../../controller/LogoutController.php" class="flex items-center gap-2">
+            <img class="size-16" src="../../assets/img/logo-dharma.png" alt="logo">
+            <span class="text">PT. Dharma Electrindo Manufacturing</span>
+        </a>
+        <div class="flex space-x-4 items-center">
+            <span class="text-black hidden md:block"><?= htmlspecialchars($user['name']); ?></span>
+            <a href="#" id="modal-button" class="text-black hover:text-green-500"><i data-feather="user"></i></a>
+            <a href="#" id="menu-button" class="md:hidden hover:text-green-500"><i data-feather="menu"></i></a>
+            <a href="#" id="close-button" class="hidden md:hidden hover:text-green-500"><i data-feather="x"></i></a>
+        </div>
+    </nav>
+
+    <div id="menu-modal" class="bg-black bg-opacity-50 absolute top-14 right-4 z-50 hidden">
+        <div class="bg-white/60 backdrop-blur-lg py-4 rounded-lg shadow-lg w-48">
+            <ul>
+                <a href="#" class="text-gray-700 hover:bg-gray-100 py-2 px-4 block w-full">Profile</a>
+                <a href="#" class="text-gray-700 hover:bg-gray-100 py-2 px-4 block w-full">Settings</a>
+                <a href="#" class="text-gray-700 hover:bg-gray-100 py-2 px-4 block w-full">Logout</a>
+            </ul>
+        </div>
+    </div>
+
+    <?php include __DIR__ . '/../partials/aside.php'; ?>
+
+    <aside class="fixed top-0 h-full w-64 bg-white text-black shadow-lg z-50 md:hidden sidebar" id="sidenav">
+        <nav class="flex flex-col h-full py-8">
+            <a href="home.php" class="hover:bg-yellow-100 py-2 px-8">Menu</a>
+            <a href="orders.php" class="hover:bg-yellow-100 py-2 px-8">Pesanan</a>
+            <a href="transactions.php" class="hover:bg-yellow-100 py-2 px-8">Transaksi</a>
+        </nav>
+    </aside>
+
+    <div class="container mx-auto mt-32 px-4 md:ml-72">
+        <h1 class="text-3xl font-bold text-green-400 mb-6">Daftar Pesanan</h1>
+        <div class="overflow-x-auto bg-white border rounded-lg shadow-md">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-green-500 text-white text-left">
+                        <th class="px-6 py-3 border">Nama Peminta</th>
+                        <th class="px-6 py-3 border">Nama Item</th>
+                        <th class="px-6 py-3 border">Jumlah</th>
+                        <th class="px-6 py-3 border">Satuan</th>
+                        <th class="px-6 py-3 border">Keterangan</th>
+                        <th class="px-6 py-3 border">Status Barang</th>
+                        <th class="px-6 py-3 border">Action</th>
+                        <th class="px-6 py-3 border">Status</th>
+                        <th class="px-6 py-3 border">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($peminta)): ?>
+                        <?php foreach ($peminta as $peminta): ?>
+                            <tr class="border-b hover:bg-gray-100">
+                                <td class="px-6 py-4"><?= htmlspecialchars($peminta['nama_item']) ?></td>
+                                <td class="px-6 py-4"><?= htmlspecialchars($peminta['jumlah']) ?></td>
+                                <td class="px-6 py-4"><?= htmlspecialchars($peminta['satuan']) ?></td>
+                                <td class="px-6 py-4"><?= htmlspecialchars($peminta['keterangan']) ?></td>
+                                <td class="px-6 py-4 <?= $peminta['status_barang'] === 'waiting confirmation' ? 'text-red-500' : ($peminta['status_barang'] === 'confirmed' ? 'text-blue-500' : ($peminta['status_barang'] === 'on process' ? 'text-purple-500' : 'text-green-500')); ?>">
+                                    <?= htmlspecialchars($peminta['status_barang']); ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php if ($peminta['status_barang'] === "request"): ?>
+                                        <form action="../../controller/ConfirmPesananController.php" method="POST">
+                                            <input type="hidden" name="user_id" value="<?= $peminta['id']; ?>">
+                                            <input type="hidden" name="status_barang" value="confirmed">
+                                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-1 px-3 rounded-full">
+                                                Confirm
+                                            </button>
+                                        </form>
+                                    <?php elseif ($peminta['status_barang'] === "confirmed"): ?>
+                                        <form action="../../controller/ConfirmPesananController.php" method="POST">
+                                            <input type="hidden" name="user_id" value="<?= $peminta['id']; ?>">
+                                            <input type="hidden" name="status_barang" value="on process">
+                                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1 px-3 rounded-full">
+                                                Process
+                                            </button>
+                                        </form>
+                                    <?php elseif ($peminta['status_barang'] === " on process"): ?>
+                                        <form action="../../controller/ConfirmPesananController.php" method="POST">
+                                            <input type="hidden" name="user_id" value="<?= $peminta['id'] ?>">
+                                            <input type="hidden" name="status_barang" value="closed">
+                                            <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold py-1 px-3 rounded-full">
+                                                Close
+                                            </button>
+                                        </form>
+                                    <?php elseif ($peminta['status_barang'] === "closed"): ?>
+                                        <span class="text-green-500">Completed</span>
+                                </td>
+                                <td class="px-6 py-4 <?= $peminta['status'] === 'Not Approve' ? 'text-red-500' : ($peminta['status'] === 'Approve' ? 'text-green-500' : ''); ?>">
+                                    <?= htmlspecialchars($peminta['status']); ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                <?php elseif ($peminta['status'] === "Not Approve"): ?>
+                                    <form action="../../controller/ConfirmPesananController.php" method="POST">
+                                        <input type="hidden" name="user_id" value="<?= $peminta['id'] ?>">
+                                        <input type="hidden" name="status" value="Approve">
+                                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-1 px-3 rounded-full">
+                                            Approve
+                                        </button>
+                                    </form>
+                                <?php elseif ($peminta['status'] === "Approve"): ?>
+                                    <span class="text-green-500">Completed</span>
+                                <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center px-6 py-4 text-gray-500">Belum ada pesanan</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        const toggleButton = document.getElementById('menu-button');
+        const sideNav = document.getElementById('sidenav');
+        const closeMenu = document.getElementById("close-button");
+
+        toggleButton.addEventListener('click', () => {
+            sideNav.classList.toggle('visible');
+            toggleButton.classList.toggle('hidden');
+            closeMenu.classList.toggle('hidden');
+        });
+
+        closeMenu.addEventListener('click', () => {
+            sideNav.classList.toggle('visible');
+            toggleButton.classList.toggle('hidden');
+            closeMenu.classList.toggle('hidden');
+        });
+
+        const modalButton = document.getElementById('modal-button');
+        const menuModal = document.getElementById('menu-modal');
+
+        modalButton.addEventListener('click', () => {
+            menuModal.classList.toggle('hidden');
+        });
+    </script>
+</body>
+
+</html>
