@@ -166,7 +166,7 @@ $request = $requestController->getRequestsByUser($user['id']);
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
             <td class="border border-green-300 px-2 py-1">
-                <input type="text" name="nama_item[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
+                <input type="text" name="nama_items[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">
             </td>
             <td class="border border-green-300 px-2 py-1">
                 <input type="number" name="jumlah[]" required class="w-full px-2 py-1 bg-green-50 border border-green-300 rounded-md">

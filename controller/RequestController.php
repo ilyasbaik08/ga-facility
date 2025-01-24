@@ -18,7 +18,6 @@ class RequestController
         $this->requestModel = new RequestModel();
     }
 
-    // Fungsi untuk menyimpan data
     public function createRequest()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,14 +29,14 @@ class RequestController
                 'request_date' => $_POST['request_date'],
                 'request_time' => $_POST['request_time'],
                 'facility' => $_POST['facility'],
-                'status_barang' => "waiting confirmation ",
+                'status_barang' => "waiting confirmation",
                 'status' => "Not Approve",
                 'items' => []
             ];
 
             foreach ($_POST['nama_items'] as $key => $nama_item) {
                 if (empty($nama_item) || empty($_POST['jumlah'][$key]) || empty($_POST['satuan'][$key]) || empty($_POST['keterangan'][$key])) {
-                    continue; // Lewatin kalau data item nggak lengkap
+                    continue; 
                 }
 
                 $data['items'][] = [
@@ -54,11 +53,9 @@ class RequestController
                 exit();
             }
 
-
             if ($this->requestModel->createRequest($data)) {
                 $_SESSION['message'] = ['type' => 'success', 'text' => 'Request berhasil disimpan'];
 
-                // Kirim email setelah berhasil menyimpan data
                 $this->sendEmailNotification($data);
             } else {
                 $_SESSION['message'] = ['type' => 'error', 'text' => 'Gagal menyimpan request'];

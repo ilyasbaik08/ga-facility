@@ -12,36 +12,50 @@ class RequestModel
         $db = new Connection();
         $this->conn = $db->openConnection();
     }
-
-    // Fungsi untuk menyimpan data ke tabel peminta
+    
     public function createRequest($data)
     {
-        $sql = "INSERT INTO peminta (user_id, date, nama_peminta, ext_phone, request_date, request_time, facility, nama_item, jumlah, satuan, keterangan, status_barang, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-
-        foreach ($data['items'] as $item) {
-            $stmt->bind_param(
-                "issssssisssss",
-                $data['user_id'],
-                $data['date'],
-                $data['nama_peminta'],
-                $data['ext_phone'],
-                $data['request_date'],
-                $data['request_time'],
-                $data['facility'],
-                $item['nama_item'],
-                $item['jumlah'],
-                $item['satuan'],
-                $item['keterangan'],
-                $data['status_barang'],
-                $data['status']
-            );
-            $stmt->execute();
+        $sql_peminta = "INSERT INTO peminta (user_id, date, nama_peminta, ext_phone, request_date, request_time, facility, status_barang, status) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt_peminta = $this->conn->prepare($sql_peminta);
+        $stmt_peminta->bind_param(
+            "issssssss",
+            $data['user_id'],
+            $data['date'],
+            $data['nama_peminta'],
+            $data['ext_phone'],
+            $data['request_date'],
+            $data['request_time'],
+            $data['facility'],
+            $data['status_barang'],
+            $data['status']
+        );
+    
+        if ($stmt_peminta->execute()) {
+            $peminta_id = $stmt_peminta->insert_id; 
+    
+            $sql_items = "INSERT INTO items (peminta_id, nama_item, jumlah, satuan, keterangan) 
+                          VALUES (?, ?, ?, ?, ?)";
+            $stmt_items = $this->conn->prepare($sql_items);
+    
+            foreach ($data['items'] as $item) {
+                $stmt_items->bind_param(
+                    "isiss",
+                    $peminta_id,
+                    $item['nama_item'],
+                    $item['jumlah'],
+                    $item['satuan'],
+                    $item['keterangan']
+                );
+                $stmt_items->execute();
+            }
+    
+            return true; 
         }
-        return true;
-    }
-
+    
+        return false;
+    }    
+    
     // Fungsi untuk mengambil data berdasarkan user_id
     public function getRequestsByUser($user_id)
     {
