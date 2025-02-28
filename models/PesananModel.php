@@ -12,17 +12,45 @@ class PesananModel
         $this->conn = $db->openConnection();
     }
 
-    public function pesanan($user_id, $date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status)
+    public function pesanan($data)
     {
-        $sql = "INSERT INTO peminta (user_id, date, name, ext_phone, request_date, request_time, facility, nama_item, jumlah, satuan, keterangan, status_barang, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("isssssssssssss", $user_id, $date, $nama_peminta, $ext_phone, $request_date, $request_time, $facility, $nama_items, $jumlahs, $satuans, $keterangans, $status_barang, $status);
+        $sql_peminta = "INSERT INTO peminta (user_id, date, name, ext_phone, request_date, request_time, facility) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt_peminta = $this->conn->prepare($sql_peminta);
+        $stmt_peminta->bind_param(
+            "issssss",
+            $data['user_id'],
+            $data['date'],
+            $data['nama_peminta'],
+            $data['ext_phone'],
+            $data['request_date'],
+            $data['request_time'],
+            $data['facility']
+        );
 
-        if ($stmt->execute()) {
+        if ($stmt_peminta->execute()) {
+            $peminta_id = $stmt_peminta->insert_id;
+
+            $sql_items = "INSERT INTO items (peminta_id, nama_item, jumlah, satuan, keterangan, status_barang, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt_items = $this->conn->prepare($sql_items);
+
+            foreach ($data['items'] as $item) {
+                $stmt_items->bind_param(
+                    "isissss",
+                    $peminta_id,
+                    $item['nama_item'],
+                    $item['jumlah'],
+                    $item['satuan'],
+                    $item['keterangan'],
+                    $item['status_barang'],
+                    $item['status']
+                );
+                $stmt_items->execute();
+            }
+
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     public function getPesanan($searchTerm = '')
@@ -42,28 +70,28 @@ class PesananModel
             FROM items
             JOIN peminta ON items.peminta_id = peminta.id
         ";
-    
+
         if (!empty($searchTerm)) {
             $sql .= " WHERE peminta.nama_peminta LIKE ?";
         }
-    
+
         $sql .= " ORDER BY peminta.created_at DESC";
-    
+
         $stmt = $this->conn->prepare($sql);
-    
+
         if (!empty($searchTerm)) {
             $searchParam = '%' . $searchTerm . '%';
             $stmt->bind_param("s", $searchParam);
         }
-    
+
         $stmt->execute();
         $result = $stmt->get_result();
         $peminta = [];
-    
+
         while ($row = $result->fetch_assoc()) {
             $peminta[] = $row;
         }
-    
+
         return $peminta;
     }
 
