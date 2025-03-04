@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../models/PesananModel.php';
-require_once __DIR__ . '/../controller/PesananController.php';
+require_once __DIR__ . '/../controller/NotifController.php';
 
 class ConfirmPesananController
 {
@@ -11,58 +11,51 @@ class ConfirmPesananController
     public function __construct()
     {
         $this->pesananModel = new PesananModel();
-        $this->pesananController = new PesananController();
     }
 
     public function confirmPesanan()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!isset($_POST['id']) || !isset($_POST['peminta_id']) || (!isset($_POST['status_barang']) && !isset($_POST['status']))) {
-                $_SESSION['message'] = ['type' => 'error', 'text' => 'DATA GAK ADA, FORM ERROR!'];
-                header("Location: ../views/admin/pesanan.php");
-                exit();
-            }
-
-            $id = $_POST['id'];
-            $peminta_id = $_POST['peminta_id'];
+            $user_id = $_POST['user_id'];
+            $id = $_POST['id']; // Ambil id dari form
+            $updateSuccess = false;
 
             if (isset($_POST['status_barang'])) {
                 $status_barang = $_POST['status_barang'];
-                $updateSukses = $this->pesananModel->updateStatusBarang($id, $peminta_id, $status_barang);
+
+                // Logika perubahan status_barang
+                if ($status_barang === 'waiting confirmation') {
+                    $status_barang = 'confirmed';
+                } elseif ($status_barang === 'confirmed') {
+                    $status_barang = 'on process';
+                } elseif ($status_barang === 'on process') {
+                    $status_barang = 'completed';
+                }
+
+                $updateSuccess = $this->pesananModel->updateStatusBarang($id, $user_id, $status_barang);
+                $statusMessage = "Status barang diperbarui menjadi: $status_barang";
             } elseif (isset($_POST['status'])) {
                 $status = $_POST['status'];
-                $updateSukses = $this->pesananModel->updateStatusPesanan($id, $peminta_id, $status);
-            } else {
-                $_SESSION['message'] = ['type' => 'error', 'text' => 'Data tidak valid!'];
-                header("Location: ../views/admin/pesanan.php");
-                exit();
+
+                // Logika perubahan status
+                if ($status === 'Not Approve') {
+                    $status = 'Approve';
+                }
+
+                $updateSuccess = $this->pesananModel->updateStatusPesanan($id, $user_id, $status);
+                $statusMessage = "Status pesanan diperbarui menjadi: $status";
             }
 
-            if ($updateSukses) {
-                if (isset($status_barang) && $status_barang = 'closed') {
-                    $user = $this->pesananController->getPesananByUser($peminta_id);
-                    if ($user) {
-                        $to = $user['email'];
-                        $subject = "Pesanan anda siap di ambil";
-                        $message = "
-                            <html>
-                            <head>
-                                <title>Pesanan Selesai</title>
-                            </head>
-                            <body>
-                                <p>Halo, {$user['name']}!</p>
-                                <p>Pesanan anda telah ditututp.</p>
-                            </body>
-                            </html>
-                        ";
-                        $headers = "MIME-Version: 1.0" . "\r\n";
-                        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-                        $headers .= "From: no-reply@yourdomain.com" . "\r\n";
-
-                        mail($to, $subject, $message, $headers);
-                    }
-                }
+            if ($updateSuccess) {
                 $_SESSION['message'] = ['type' => 'success', 'text' => 'Status sudah diperbarui'];
+
+                // 🔥 Kirim email notifikasi ke user
+                $userEmail = $this->pesananModel->getUserEmailById($user_id);
+                if ($userEmail) {
+                    $subject = "Notifikasi Pembaruan Status Pesanan";
+                    $message = "Halo, status pesanan Anda telah diperbarui. \n$statusMessage";
+                    sendNotification($userEmail, $subject, $message);
+                }
             } else {
                 $_SESSION['message'] = ['type' => 'error', 'text' => 'Gagal memperbarui status pesanan'];
             }
